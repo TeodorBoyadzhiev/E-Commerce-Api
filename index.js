@@ -1,16 +1,18 @@
 const express = require("express");
-const { start } = require("repl");
 const db = require("./database");
+const userRoute = require("./routes/user");
 
 
 
-appStart();
+start();
 
-async function appStart() {
+async function start() {
     const port = 5000;
     const app = express();
 
     await db(app);
+    app.use('/api/users', userRoute);
+
     app.listen(port, () => {
         console.log('Server is running on port ' + port);
     });

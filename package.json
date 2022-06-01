@@ -1,0 +1,27 @@
+{
+  "name": "e-commerce-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TeodorBoyadzhiev/E-Commerce-Api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TeodorBoyadzhiev/E-Commerce-Api/issues"
+  },
+  "homepage": "https://github.com/TeodorBoyadzhiev/E-Commerce-Api#readme",
+  "dependencies": {
+    "dotenv": "^16.0.1",
+    "express": "^4.18.1",
+    "mongodb": "4.6.0",
+    "mongoose": "^6.3.5",
+    "nodemon": "^2.0.16"
+  }
+}

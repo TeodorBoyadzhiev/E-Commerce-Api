@@ -1,6 +1,7 @@
 const express = require("express");
 const db = require("./database");
 const userRoute = require("./routes/user");
+const authRoute = require("./routes/auth");
 
 
 
@@ -11,6 +12,7 @@ async function start() {
     const app = express();
 
     await db(app);
+    app.use('/api/auth', authRoute);
     app.use('/api/users', userRoute);
 
     app.listen(port, () => {

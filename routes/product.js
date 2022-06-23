@@ -39,6 +39,8 @@ router.get('/', async (req, res) => {
                     $in: [qCategory]
                 }
             });
+
+            console.log
         } else {
             products = await Product.find()
         }

@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/TeodorBoyadzhiev/E-Commerce-Api#readme",
   "dependencies": {
+    "body-parser": "^1.20.0",
     "cors": "^2.8.5",
     "crypto-js": "^4.1.1",
     "dotenv": "^16.0.1",

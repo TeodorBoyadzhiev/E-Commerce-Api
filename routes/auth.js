@@ -3,6 +3,7 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const bcrypt = require('bcrypt');
 const { default: axios } = require("axios");
+const { response } = require("express");
 
 //REGISTER
 router.post('/register', async (req, res) => {
@@ -13,13 +14,14 @@ router.post('/register', async (req, res) => {
             return;
         }
     }
-
+    const accessToken = await generateToken(req.user._doc);
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
     const newUser = new User({
         username: req.body.username,
         email: req.body.email,
-        password: hashedPassword
+        password: hashedPassword,
+        accessToken
     });
 
     try {
@@ -47,8 +49,9 @@ router.post('/login', async (req, res) => {
         const accessToken = await generateToken(user._doc);
 
         const { password, ...others } = user._doc;
-        
-        res.status(200).json(others, accessToken);
+        const data = {...others, accessToken} 
+
+        res.status(200).json(data);
     } catch (err) {
         res.status(500).json(err);
         console.log(err)
@@ -57,14 +60,16 @@ router.post('/login', async (req, res) => {
 });
 
 //LOGOUT
-router.get('/logout', async (req, res) => {
+router.post('/logout', async (req, res) => {
     try {
         const user = await User.findOne({ username: req.body.username });
+        if (req.body.accessToken !== user._doc.accessToken) {
+            throw new Error('Something went wrong!');
+        }
 
         res.status(200);
     } catch (err) {
-        console.log(err);
-        res.status(500).json(err);
+        res.status(500).json(res.data.message || err);
     }
 });
 

@@ -14,14 +14,13 @@ router.post('/register', async (req, res) => {
             return;
         }
     }
-    const accessToken = await generateToken(req.user._doc);
+    const accessToken = await generateToken(req.body);
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
     const newUser = new User({
         username: req.body.username,
         email: req.body.email,
-        password: hashedPassword,
-        accessToken
+        password: hashedPassword
     });
 
     try {
@@ -49,7 +48,7 @@ router.post('/login', async (req, res) => {
         const accessToken = await generateToken(user._doc);
 
         const { password, ...others } = user._doc;
-        const data = {...others, accessToken} 
+        const data = { ...others, accessToken }
 
         res.status(200).json(data);
     } catch (err) {
@@ -63,13 +62,14 @@ router.post('/login', async (req, res) => {
 router.post('/logout', async (req, res) => {
     try {
         const user = await User.findOne({ username: req.body.username });
-        if (req.body.accessToken !== user._doc.accessToken) {
-            throw new Error('Something went wrong!');
+        if (!user) {
+            throw new Error('No such user!')
         }
-
+        res.json();
         res.status(200);
     } catch (err) {
-        res.status(500).json(res.data.message || err);
+        res.status(500);
+        res.send(err);
     }
 });
 

@@ -3,7 +3,6 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const bcrypt = require('bcrypt');
 const { default: axios } = require("axios");
-const { response } = require("express");
 
 //REGISTER
 router.post('/register', async (req, res) => {
@@ -14,7 +13,7 @@ router.post('/register', async (req, res) => {
             return;
         }
     }
-    const accessToken = await generateToken(req.body);
+    const accessToken = await generateAccessToken(req.body);
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
     const newUser = new User({
@@ -45,10 +44,12 @@ router.post('/login', async (req, res) => {
             throw new Error('Incorect password');
         }
 
-        const accessToken = await generateToken(user._doc);
+        const accessToken = await generateAccessToken(user._doc);
+        const refreshToken = await generateRefreshToken(user._doc);
+        refreshTokens.push(refreshToken);
 
         const { password, ...others } = user._doc;
-        const data = { ...others, accessToken }
+        const data = { ...others, accessToken, refreshToken }
 
         res.status(200).json(data);
     } catch (err) {
@@ -58,6 +59,31 @@ router.post('/login', async (req, res) => {
 
 });
 
+let refreshTokens = [];
+
+//REFRESH TOKEN
+router.post('/refresh', async (req, res) => {
+    const refreshToken = req.body.token;
+
+    if (!refreshToken) return res.status(401).json("You are not authenticated!");
+    if (!refreshTokens.includes(refreshToken)) return res.status(403).json("Refresh token is not valid!");
+
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+        err && console.log(err);
+        refreshTokens = refreshTokens.filter(token => token !== refreshToken);
+
+        const accessToken = generateAccessToken(user);
+        const refreshToken = generateRefreshToken(user);
+
+        refreshTokens.push(refreshToken);
+
+        res.status(200).json({
+            accessToken: accessToken,
+            refreshToken: refreshToken
+        });
+    });
+});
+
 //LOGOUT
 router.post('/logout', async (req, res) => {
     try {
@@ -65,8 +91,10 @@ router.post('/logout', async (req, res) => {
         if (!user) {
             throw new Error('No such user!')
         }
-        res.json();
-        res.status(200);
+        const refreshToken = req.body.token;
+        refreshTokens = refreshTokens.filter((token) => token !== refreshToken);
+
+        res.status(200).json("You logged out successfully");
     } catch (err) {
         res.status(500);
         res.send(err);
@@ -84,12 +112,20 @@ async function reCaptchaValidation(token) {
     }
 }
 
-async function generateToken(userData) {
+async function generateAccessToken(userData) {
     return jwt.sign({
         _id: userData._id,
         username: userData.username,
         email: userData.email
-    }, process.env.TOKEN_SECRET);
+    }, process.env.TOKEN_SECRET, { expiresIn: "15m" });
+}
+
+async function generateRefreshToken(userData) {
+    return jwt.sign({
+        _id: userData._id,
+        username: userData.username,
+        email: userData.email
+    }, process.env.REFRESH_TOKEN_SECRET);
 }
 
 

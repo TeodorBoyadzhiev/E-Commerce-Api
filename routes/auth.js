@@ -31,6 +31,7 @@ router.post('/register', async (req, res) => {
     }
 });
 
+let refreshTokens = [];
 
 //LOGIN
 router.post('/login', async (req, res) => {
@@ -59,7 +60,6 @@ router.post('/login', async (req, res) => {
 
 });
 
-let refreshTokens = [];
 
 //REFRESH TOKEN
 router.post('/refresh', async (req, res) => {
@@ -87,10 +87,6 @@ router.post('/refresh', async (req, res) => {
 //LOGOUT
 router.post('/logout', async (req, res) => {
     try {
-        const user = await User.findOne({ username: req.body.username });
-        if (!user) {
-            throw new Error('No such user!')
-        }
         const refreshToken = req.body.token;
         refreshTokens = refreshTokens.filter((token) => token !== refreshToken);
 
